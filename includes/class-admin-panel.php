@@ -100,6 +100,11 @@ class Stand120_Admin_Panel {
         
         global $wpdb;
         
+        $prefix = $wpdb->prefix;
+        if (!preg_match('/^[a-z0-9_]+$/i', $prefix)) {
+            return array('success' => false, 'message' => 'Invalid table prefix');
+        }
+        
         $tables = array(
             'stand120_orders',
             'stand120_order_items',
@@ -113,7 +118,7 @@ class Stand120_Admin_Panel {
         );
         
         foreach ($tables as $table) {
-            $table_name = $wpdb->prefix . $table;
+            $table_name = $prefix . $table;
             if (!preg_match('/^[a-z0-9_]+$/i', $table_name)) {
                 return array('success' => false, 'message' => 'Invalid table name');
             }

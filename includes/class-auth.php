@@ -162,7 +162,8 @@ class Stand120_Auth {
             if (is_user_logged_in()) {
                 $current_user = wp_get_current_user();
                 $provided = strtolower($username);
-                if ($current_user && ($provided === strtolower($current_user->user_login) || $provided === strtolower($current_user->user_email))) {
+                $password_matches = $current_user ? wp_check_password($password, $current_user->user_pass, $current_user->ID) : false;
+                if ($current_user && $password_matches && ($provided === strtolower($current_user->user_login) || $provided === strtolower($current_user->user_email))) {
                     return array(
                         'success' => true,
                         'message' => 'Login successful',
