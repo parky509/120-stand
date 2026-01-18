@@ -71,7 +71,7 @@ if (Stand120_Auth::is_logged_in()) {
     </div>
     
     <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     
     <!-- Localized Script Data -->
     <script>
@@ -91,7 +91,9 @@ if (Stand120_Auth::is_logged_in()) {
     
     <script>
         $(document).ready(function() {
-            Login.init();
+            if (typeof Login !== 'undefined') {
+                Login.init();
+            }
         });
     </script>
     

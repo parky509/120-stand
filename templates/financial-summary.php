@@ -156,12 +156,14 @@ include STAND120_PLUGIN_DIR . 'templates/partials/header.php';
 
 <script>
     $(document).ready(function() {
-        FinancialSummary.init();
-        
-        // Reload data when date changes
-        $('#finDate').on('change', function() {
-            FinancialSummary.loadData();
-        });
+        if (typeof FinancialSummary !== 'undefined') {
+            FinancialSummary.init();
+            
+            // Reload data when date changes
+            $('#finDate').on('change', function() {
+                FinancialSummary.loadData();
+            });
+        }
     });
 </script>
 

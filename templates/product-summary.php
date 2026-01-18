@@ -125,7 +125,9 @@ include STAND120_PLUGIN_DIR . 'templates/partials/header.php';
 
 <script>
     $(document).ready(function() {
-        ProductSummary.init();
+        if (typeof ProductSummary !== 'undefined') {
+            ProductSummary.init();
+        }
     });
 </script>
 

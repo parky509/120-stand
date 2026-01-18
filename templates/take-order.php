@@ -174,11 +174,13 @@ include STAND120_PLUGIN_DIR . 'templates/partials/header.php';
 
 <script>
     jQuery(document).ready(function($) {
-        // Initialize TakeOrder
-        TakeOrder.init();
-        
-        // Calculate totals immediately
-        TakeOrder.calculateTotals();
+        if (typeof TakeOrder !== 'undefined') {
+            // Initialize TakeOrder
+            TakeOrder.init();
+            
+            // Calculate totals immediately
+            TakeOrder.calculateTotals();
+        }
     });
 </script>
 

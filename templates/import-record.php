@@ -106,12 +106,14 @@ include STAND120_PLUGIN_DIR . 'templates/partials/header.php';
 
 <script>
     $(document).ready(function() {
-        ImportRecord.init();
-        
-        // Reload data when date changes
-        $('#importDate').on('change', function() {
-            ImportRecord.loadData();
-        });
+        if (typeof ImportRecord !== 'undefined') {
+            ImportRecord.init();
+            
+            // Reload data when date changes
+            $('#importDate').on('change', function() {
+                ImportRecord.loadData();
+            });
+        }
     });
 </script>
 

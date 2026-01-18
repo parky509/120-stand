@@ -245,7 +245,9 @@ include STAND120_PLUGIN_DIR . 'templates/partials/header.php';
 
 <script>
     $(document).ready(function() {
-        AdminPanel.init();
+        if (typeof AdminPanel !== 'undefined') {
+            AdminPanel.init();
+        }
     });
 </script>
 

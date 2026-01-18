@@ -105,12 +105,14 @@ include STAND120_PLUGIN_DIR . 'templates/partials/header.php';
 
 <script>
     $(document).ready(function() {
-        StockInventory.init();
-        
-        // Reload data when date changes
-        $('#stockDate').on('change', function() {
-            StockInventory.loadData();
-        });
+        if (typeof StockInventory !== 'undefined') {
+            StockInventory.init();
+            
+            // Reload data when date changes
+            $('#stockDate').on('change', function() {
+                StockInventory.loadData();
+            });
+        }
     });
 </script>
 

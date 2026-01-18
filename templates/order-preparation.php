@@ -85,12 +85,14 @@ include STAND120_PLUGIN_DIR . 'templates/partials/header.php';
 
 <script>
     $(document).ready(function() {
-        OrderPreparation.init();
-        
-        // Reload data when date changes
-        $('#prepDate').on('change', function() {
-            OrderPreparation.loadData();
-        });
+        if (typeof OrderPreparation !== 'undefined') {
+            OrderPreparation.init();
+            
+            // Reload data when date changes
+            $('#prepDate').on('change', function() {
+                OrderPreparation.loadData();
+            });
+        }
     });
 </script>
 

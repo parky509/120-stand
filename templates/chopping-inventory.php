@@ -87,12 +87,14 @@ include STAND120_PLUGIN_DIR . 'templates/partials/header.php';
 
 <script>
     $(document).ready(function() {
-        ChoppingInventory.init();
-        
-        // Reload data when date changes
-        $('#chopDate').on('change', function() {
-            ChoppingInventory.loadData();
-        });
+        if (typeof ChoppingInventory !== 'undefined') {
+            ChoppingInventory.init();
+            
+            // Reload data when date changes
+            $('#chopDate').on('change', function() {
+                ChoppingInventory.loadData();
+            });
+        }
     });
 </script>
 
