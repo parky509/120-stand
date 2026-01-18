@@ -556,10 +556,8 @@
         }
     };
 
-    // Initialize on document ready
-    $(document).ready(function() {
-        Stand120.init();
-    });
+    // Initialize immediately now that the script has loaded
+    Stand120.init();
 
 })(jQuery);
 

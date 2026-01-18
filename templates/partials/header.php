@@ -38,6 +38,9 @@ $current_page = get_query_var('stand120_page');
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="<?php echo STAND120_PLUGIN_URL; ?>assets/images/logo.png">
     <link rel="apple-touch-icon" href="<?php echo STAND120_PLUGIN_URL; ?>assets/images/logo.png">
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     
     <?php wp_head(); ?>
 </head>

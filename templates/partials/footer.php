@@ -55,9 +55,6 @@ $is_admin = Stand120_Auth::is_admin();
         </div>
     </div>
     
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    
     <!-- Localized Script Data -->
     <script>
         var stand120_ajax = {
