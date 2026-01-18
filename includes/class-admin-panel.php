@@ -122,7 +122,8 @@ class Stand120_Admin_Panel {
             if (!preg_match('/^[a-z0-9_]+$/i', $table_name)) {
                 return array('success' => false, 'message' => 'Invalid table name');
             }
-            $result = $wpdb->query("TRUNCATE TABLE $table_name");
+            $table_name = esc_sql($table_name);
+            $result = $wpdb->query("TRUNCATE TABLE `$table_name`");
             if ($result === false) {
                 return array('success' => false, 'message' => 'Failed to clear records: ' . $wpdb->last_error);
             }

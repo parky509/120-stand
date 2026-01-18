@@ -159,18 +159,6 @@ class Stand120_Auth {
         }
         
         if (is_wp_error($user)) {
-            if (is_user_logged_in()) {
-                $current_user = wp_get_current_user();
-                $provided = strtolower($username);
-                $password_matches = $current_user ? wp_check_password($password, $current_user->user_pass, $current_user->ID) : false;
-                if ($current_user && $password_matches && ($provided === strtolower($current_user->user_login) || $provided === strtolower($current_user->user_email))) {
-                    return array(
-                        'success' => true,
-                        'message' => 'Login successful',
-                        'user' => self::get_current_user_data()
-                    );
-                }
-            }
             return array(
                 'success' => false,
                 'message' => $user->get_error_message()

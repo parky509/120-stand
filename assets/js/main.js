@@ -1809,6 +1809,16 @@ const AdminPanel = {
         });
         
         if (confirmed) {
+            const secondConfirm = await Stand120.showModal({
+                title: 'Confirm Delete',
+                content: 'Please confirm again to clear all records.',
+                confirmText: 'Yes, Clear'
+            });
+            
+            if (!secondConfirm) {
+                return;
+            }
+            
             Stand120.showLoading('Clearing records...');
             Stand120.ajax('clear_all_records').then(response => {
                 Stand120.hideLoading();

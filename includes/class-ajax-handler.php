@@ -164,7 +164,7 @@ class Stand120_Ajax_Handler {
      * Handle login
      */
     private static function handle_login() {
-        $username = sanitize_user($_POST['username'] ?? '');
+        $username = sanitize_text_field($_POST['username'] ?? '');
         $password = $_POST['password'] ?? '';
         
         if (empty($username) || empty($password)) {
