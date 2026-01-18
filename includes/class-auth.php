@@ -142,13 +142,30 @@ class Stand120_Auth {
      * Login user
      */
     public static function login($username, $password) {
-        $user = wp_signon(array(
+        $credentials = array(
             'user_login' => $username,
             'user_password' => $password,
             'remember' => true
-        ), is_ssl());
+        );
+        
+        $user = wp_signon($credentials, is_ssl());
+        
+        if (is_wp_error($user) && is_email($username)) {
+            $user_by_email = get_user_by('email', $username);
+            if ($user_by_email) {
+                $credentials['user_login'] = $user_by_email->user_login;
+                $user = wp_signon($credentials, is_ssl());
+            }
+        }
         
         if (is_wp_error($user)) {
+            if (is_user_logged_in()) {
+                return array(
+                    'success' => true,
+                    'message' => 'Login successful',
+                    'user' => self::get_current_user_data()
+                );
+            }
             return array(
                 'success' => false,
                 'message' => $user->get_error_message()

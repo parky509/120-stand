@@ -238,6 +238,9 @@ include STAND120_PLUGIN_DIR . 'templates/partials/header.php';
                 <button class="btn btn-secondary">
                     <i class="fas fa-sync"></i> Clear Cache
                 </button>
+                <button id="clearAllRecords" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Clear All Records
+                </button>
             </div>
         </div>
     </div>

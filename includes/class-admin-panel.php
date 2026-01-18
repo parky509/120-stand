@@ -89,6 +89,39 @@ class Stand120_Admin_Panel {
         
         return array('success' => true, 'message' => 'Opening values updated');
     }
+
+    /**
+     * Clear all records and history tables
+     */
+    public static function clear_all_records() {
+        if (!Stand120_Auth::is_admin()) {
+            return array('success' => false, 'message' => 'Unauthorized');
+        }
+        
+        global $wpdb;
+        
+        $tables = array(
+            'stand120_orders',
+            'stand120_order_items',
+            'stand120_order_preparation',
+            'stand120_stock_inventory',
+            'stand120_chopping_inventory',
+            'stand120_import_records',
+            'stand120_financial_summary',
+            'stand120_sync_queue',
+            'stand120_activity_log'
+        );
+        
+        foreach ($tables as $table) {
+            $table_name = $wpdb->prefix . $table;
+            $result = $wpdb->query("TRUNCATE TABLE $table_name");
+            if ($result === false) {
+                return array('success' => false, 'message' => 'Failed to clear records: ' . $wpdb->last_error);
+            }
+        }
+        
+        return array('success' => true, 'message' => 'All records cleared');
+    }
     
     /**
      * Get activity logs

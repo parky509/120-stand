@@ -419,31 +419,32 @@
 }
 
 .btn-secondary {
-    background: var(--bg-glass);
-    color: var(--text-primary);
-    border: 1px solid var(--border-glass);
+    background: var(--text-white);
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
 }
 
 .btn-secondary:hover {
-    background: var(--bg-secondary);
+    background: var(--primary-color);
+    color: var(--text-white);
 }
 
 .btn-success {
-    background: var(--success-color);
+    background: var(--primary-color);
     color: var(--text-white);
 }
 
 .btn-success:hover {
-    background: #218838;
+    background: var(--primary-dark);
 }
 
 .btn-danger {
-    background: var(--danger-color);
+    background: var(--primary-dark);
     color: var(--text-white);
 }
 
 .btn-danger:hover {
-    background: #c82333;
+    background: var(--primary-color);
 }
 
 .btn-sm {
@@ -681,10 +682,10 @@ select.form-control {
     align-items: center;
     gap: 6px;
     padding: 8px 14px;
-    background: var(--bg-glass);
-    border: 1px solid var(--border-glass);
+    background: var(--text-white);
+    border: 1px solid var(--primary-color);
     border-radius: var(--border-radius-sm);
-    color: var(--text-secondary);
+    color: var(--primary-color);
     text-decoration: none;
     font-size: 0.8rem;
     transition: all var(--transition-fast);
@@ -737,17 +738,17 @@ select.form-control {
 
 .pagination-btn {
     padding: 10px 16px;
-    background: var(--bg-glass);
-    border: 1px solid var(--border-glass);
+    background: var(--text-white);
+    border: 1px solid var(--primary-color);
     border-radius: var(--border-radius-sm);
-    color: var(--text-secondary);
+    color: var(--primary-color);
     cursor: pointer;
     transition: all var(--transition-fast);
 }
 
 .pagination-btn:hover:not(:disabled) {
     background: var(--primary-color);
-    color: var(--text-primary);
+    color: var(--text-white);
 }
 
 .pagination-btn:disabled {

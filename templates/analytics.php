@@ -23,15 +23,19 @@ include STAND120_PLUGIN_DIR . 'templates/partials/header.php';
     Analytics Dashboard
 </h1>
 
-<!-- Date Range Filter -->
+<!-- Period Filter -->
 <div class="filter-section">
     <div class="filter-group">
-        <label>From Date</label>
-        <input type="date" id="dateFrom" class="form-control" value="<?php echo date('Y-m-01'); ?>">
+        <label>Period</label>
+        <select id="periodFilter" class="form-control">
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+        </select>
     </div>
     <div class="filter-group">
-        <label>To Date</label>
-        <input type="date" id="dateTo" class="form-control" value="<?php echo date('Y-m-d'); ?>">
+        <label>Date</label>
+        <input type="date" id="periodDate" class="form-control" value="<?php echo date('Y-m-d'); ?>">
     </div>
     <div class="filter-group">
         <label>&nbsp;</label>
@@ -108,6 +112,111 @@ include STAND120_PLUGIN_DIR . 'templates/partials/header.php';
     </div>
 </div>
 
+<!-- Order Preparation Analytics -->
+<div class="glass-card">
+    <h3 style="margin-bottom: 20px; color: var(--primary-color);">
+        <i class="fas fa-blender"></i> Order Preparation Analytics
+    </h3>
+    <div id="prepSummary" style="color: var(--text-muted); margin-bottom: 12px;"></div>
+    <div class="table-responsive">
+        <table class="table" id="prepAnalyticsTable">
+            <thead>
+                <tr>
+                    <th>Fruit</th>
+                    <th>Total Added</th>
+                    <th>Total Sold</th>
+                    <th>Closing</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Stock Inventory Analytics -->
+<div class="glass-card">
+    <h3 style="margin-bottom: 20px; color: var(--primary-color);">
+        <i class="fas fa-boxes"></i> Stock Inventory Analytics
+    </h3>
+    <div id="stockSummary" style="color: var(--text-muted); margin-bottom: 12px;"></div>
+    <div class="table-responsive">
+        <table class="table" id="stockAnalyticsTable">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Added Packs</th>
+                    <th>Used Packs</th>
+                    <th>Closing Packs</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Chopping Inventory Analytics -->
+<div class="glass-card">
+    <h3 style="margin-bottom: 20px; color: var(--primary-color);">
+        <i class="fas fa-cut"></i> Chopping Inventory Analytics
+    </h3>
+    <div id="chopSummary" style="color: var(--text-muted); margin-bottom: 12px;"></div>
+    <div class="table-responsive">
+        <table class="table" id="chopAnalyticsTable">
+            <thead>
+                <tr>
+                    <th>Fruit</th>
+                    <th>Imported Whole</th>
+                    <th>Prepared Whole</th>
+                    <th>Packs Gotten</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Import Records Analytics -->
+<div class="glass-card">
+    <h3 style="margin-bottom: 20px; color: var(--primary-color);">
+        <i class="fas fa-truck-loading"></i> Import Records Analytics
+    </h3>
+    <div id="importSummary" style="color: var(--text-muted); margin-bottom: 12px;"></div>
+    <div class="table-responsive">
+        <table class="table" id="importAnalyticsTable">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Type</th>
+                    <th>Quantity Imported</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Financial Summary Analytics -->
+<div class="glass-card">
+    <h3 style="margin-bottom: 20px; color: var(--primary-color);">
+        <i class="fas fa-wallet"></i> Financial Summary Analytics
+    </h3>
+    <div class="table-responsive">
+        <table class="table" id="financialAnalyticsTable">
+            <thead>
+                <tr>
+                    <th>Total Sales</th>
+                    <th>Cash Sales</th>
+                    <th>Transfer Sales</th>
+                    <th>Delivery Fees</th>
+                    <th>Extras</th>
+                    <th>Expenses</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
 <!-- Daily Sales Chart (Simple visualization) -->
 <div class="glass-card">
     <h3 style="margin-bottom: 20px; color: var(--primary-color);">
@@ -124,13 +233,14 @@ include STAND120_PLUGIN_DIR . 'templates/partials/header.php';
         loadAnalytics();
         
         $('#loadAnalytics').on('click', loadAnalytics);
+        $('#periodFilter, #periodDate').on('change', loadAnalytics);
     });
     
     function loadAnalytics() {
         Stand120.ajax('get_analytics', {
             type: 'overview',
-            date_from: $('#dateFrom').val(),
-            date_to: $('#dateTo').val()
+            period: $('#periodFilter').val(),
+            date: $('#periodDate').val()
         }).then(response => {
             if (response.success) {
                 const data = response.data.analytics;
@@ -157,6 +267,103 @@ include STAND120_PLUGIN_DIR . 'templates/partials/header.php';
                 } else {
                     $staffBody.append('<tr><td colspan="3" style="text-align:center;color:var(--text-muted)">No data</td></tr>');
                 }
+                
+                // Render order preparation analytics
+                const prepSummary = data.preparation?.summary || {};
+                $('#prepSummary').text(
+                    `Total Added: ${Stand120.formatNumber(prepSummary.total_added || 0)} | ` +
+                    `Total Sold: ${Stand120.formatNumber(prepSummary.total_sold || 0)} | ` +
+                    `Closing: ${Stand120.formatNumber(prepSummary.closing_value || 0)}`
+                );
+                
+                const $prepBody = $('#prepAnalyticsTable tbody').empty();
+                if (data.preparation?.records?.length) {
+                    data.preparation.records.forEach(record => {
+                        $prepBody.append(`<tr>
+                            <td>${record.product_name}</td>
+                            <td class="formatted-number">${Stand120.formatNumber(record.total_added || 0)}</td>
+                            <td class="formatted-number">${Stand120.formatNumber(record.total_sold || 0)}</td>
+                            <td class="formatted-number">${Stand120.formatNumber(record.closing_value || 0)}</td>
+                        </tr>`);
+                    });
+                } else {
+                    $prepBody.append('<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">No data</td></tr>');
+                }
+                
+                // Render stock inventory analytics
+                const stockSummary = data.stock?.summary || {};
+                $('#stockSummary').text(
+                    `Added: ${Stand120.formatNumber(stockSummary.added_packs || 0)} | ` +
+                    `Used: ${Stand120.formatNumber(stockSummary.used_packs || 0)} | ` +
+                    `Closing: ${Stand120.formatNumber(stockSummary.closing_packs || 0)}`
+                );
+                
+                const $stockBody = $('#stockAnalyticsTable tbody').empty();
+                if (data.stock?.records?.length) {
+                    data.stock.records.forEach(record => {
+                        $stockBody.append(`<tr>
+                            <td>${record.product_name}</td>
+                            <td class="formatted-number">${Stand120.formatNumber(record.added_packs || 0)}</td>
+                            <td class="formatted-number">${Stand120.formatNumber(record.used_packs || 0)}</td>
+                            <td class="formatted-number">${Stand120.formatNumber(record.closing_packs || 0)}</td>
+                        </tr>`);
+                    });
+                } else {
+                    $stockBody.append('<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">No data</td></tr>');
+                }
+                
+                // Render chopping inventory analytics
+                const chopSummary = data.chopping?.summary || {};
+                $('#chopSummary').text(
+                    `Imported: ${Stand120.formatNumber(chopSummary.import_whole || 0)} | ` +
+                    `Prepared: ${Stand120.formatNumber(chopSummary.prepared_whole || 0)} | ` +
+                    `Packs: ${Stand120.formatNumber(chopSummary.packs_gotten || 0)}`
+                );
+                
+                const $chopBody = $('#chopAnalyticsTable tbody').empty();
+                if (data.chopping?.records?.length) {
+                    data.chopping.records.forEach(record => {
+                        $chopBody.append(`<tr>
+                            <td>${record.product_name}</td>
+                            <td class="formatted-number">${Stand120.formatNumber(record.import_whole || 0)}</td>
+                            <td class="formatted-number">${Stand120.formatNumber(record.prepared_whole || 0)}</td>
+                            <td class="formatted-number">${Stand120.formatNumber(record.packs_gotten || 0)}</td>
+                        </tr>`);
+                    });
+                } else {
+                    $chopBody.append('<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">No data</td></tr>');
+                }
+                
+                // Render import records analytics
+                const importSummary = data.imports?.summary || {};
+                $('#importSummary').text(
+                    `Total Imported: ${Stand120.formatNumber(importSummary.quantity_imported || 0)}`
+                );
+                
+                const $importBody = $('#importAnalyticsTable tbody').empty();
+                if (data.imports?.records?.length) {
+                    data.imports.records.forEach(record => {
+                        $importBody.append(`<tr>
+                            <td>${record.product_name}</td>
+                            <td>${record.product_type}</td>
+                            <td class="formatted-number">${Stand120.formatNumber(record.quantity_imported || 0)}</td>
+                        </tr>`);
+                    });
+                } else {
+                    $importBody.append('<tr><td colspan="3" style="text-align:center;color:var(--text-muted)">No data</td></tr>');
+                }
+                
+                // Render financial summary analytics
+                const financials = data.financials || {};
+                const $financialBody = $('#financialAnalyticsTable tbody').empty();
+                $financialBody.append(`<tr>
+                    <td class="formatted-number">₦${Stand120.formatNumber(financials.total_sales || 0)}</td>
+                    <td class="formatted-number">₦${Stand120.formatNumber(financials.cash_sales || 0)}</td>
+                    <td class="formatted-number">₦${Stand120.formatNumber(financials.transfer_sales || 0)}</td>
+                    <td class="formatted-number">₦${Stand120.formatNumber(financials.delivery_fees || 0)}</td>
+                    <td class="formatted-number">₦${Stand120.formatNumber(financials.extras_amount || 0)}</td>
+                    <td class="formatted-number">₦${Stand120.formatNumber(financials.expenses_amount || 0)}</td>
+                </tr>`);
                 
                 // Render top products
                 const $productsBody = $('#topProductsTable tbody').empty();

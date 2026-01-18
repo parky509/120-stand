@@ -670,13 +670,11 @@ const TakeOrder = {
         $('#grandTotal').text('₦' + Stand120.formatNumber(grandTotal));
         
         // Log for debugging
-        console.log('Calculations updated - Subtotal:', subtotal, 'Delivery:', deliveryFee, 'Grand Total:', grandTotal);
     },
     
     handlePaymentMethodChange: function() {
         const method = $('input[name="payment_method"]:checked').val();
         
-        console.log('Payment method changed to:', method);
         
         // Hide all payment sections first
         $('#cashSection').hide();
@@ -800,10 +798,8 @@ const TakeOrder = {
         }
         
         // Log the data being sent for debugging
-        console.log('Submitting order data:', data);
         
         Stand120.ajax('submit_order', data).then(response => {
-            console.log('Order response:', response);
             if (response.success) {
                 // Show success popup and auto-refresh page
                 Stand120.showAlert('success', 'Order #' + (response.data.order_id || '') + ' submitted successfully!', true);
@@ -921,7 +917,6 @@ const OrderPreparation = {
         $row.find('.prep-closing').text(Stand120.formatNumber(closing));
         
         // Log for debugging
-        console.log('Order Prep Calculation - Opening:', opening, '+ Added:', added, '- Sold:', sold, '= Closing:', closing);
         
         // Auto-save with debounce
         clearTimeout($row.data('saveTimeout'));
@@ -943,7 +938,6 @@ const OrderPreparation = {
             if (response.success) {
                 $row.addClass('saved');
                 setTimeout(() => $row.removeClass('saved'), 500);
-                console.log('Order Preparation saved - Closing calculated:', response.data?.data?.closing || 'N/A');
             }
         });
     }
@@ -1038,7 +1032,6 @@ const StockInventory = {
         $row.find('.stock-closing').text(Stand120.formatNumber(closing));
         
         // Log for debugging
-        console.log('Stock Calculation - Opening:', opening, '+ Added:', added, '- Used:', used, '= Closing:', closing);
         
         // Auto-save with debounce
         clearTimeout($row.data('saveTimeout'));
@@ -1058,7 +1051,6 @@ const StockInventory = {
             if (response.success) {
                 $row.addClass('saved');
                 setTimeout(() => $row.removeClass('saved'), 500);
-                console.log('Stock Inventory saved - Closing calculated:', response.data?.data?.closing || 'N/A');
             }
         });
     }
@@ -1156,7 +1148,6 @@ const ChoppingInventory = {
         $row.find('.chop-closing').text(Stand120.formatNumber(closing));
         
         // Log for debugging
-        console.log('Chopping Calculation - Opening:', opening, '+ Import:', importVal, '- Prepared:', prepared, '= Closing:', closing);
         
         // Auto-save with debounce
         clearTimeout($row.data('saveTimeout'));
@@ -1180,11 +1171,6 @@ const ChoppingInventory = {
             if (response.success) {
                 $row.addClass('saved');
                 setTimeout(() => $row.removeClass('saved'), 500);
-                
-                // If packs_gotten is updated, the Stock Inventory is also updated automatically
-                if (packs > 0) {
-                    console.log('Chopping Inventory saved - Stock Inventory has been updated with packs gotten:', packs);
-                }
             }
         });
     }
@@ -1275,11 +1261,6 @@ const ImportRecord = {
                     .removeClass('status-syncing status-pending')
                     .addClass('status-synced')
                     .html('<i class="fas fa-check"></i> synced');
-                
-                // Show notification that connected forms are updated
-                if (response.data && response.data.sync_status === 'synced') {
-                    console.log('Import Record saved - Connected forms (Stock Inventory, Chopping Inventory) have been updated.');
-                }
             }
         });
     }
@@ -1371,7 +1352,6 @@ const FinancialSummary = {
         $('#cashLeft').text('₦' + Stand120.formatNumber(cashLeft));
         
         // Log for debugging
-        console.log('Financial Calculation - Cash Sales:', cashSales, '+ Old Cash:', oldCash, '+ Extras:', extras, '- Expenses:', expenses, '= Cash Left:', cashLeft);
     },
     
     saveData: function() {
@@ -1448,6 +1428,7 @@ const AdminPanel = {
     init: function() {
         this.bindEvents();
         this.loadData();
+        this.loadOpeningValues();
     },
     
     bindEvents: function() {
@@ -1457,6 +1438,9 @@ const AdminPanel = {
         $(document).on('click', '#addStaff', this.showAddStaffModal.bind(this));
         $(document).on('click', '.edit-staff', this.editStaff.bind(this));
         $(document).on('click', '.delete-staff', this.deleteStaff.bind(this));
+        $(document).on('click', '#saveOpeningValues', this.saveOpeningValues.bind(this));
+        $(document).on('change', '#openingDate', this.loadOpeningValues.bind(this));
+        $(document).on('click', '#clearAllRecords', this.clearAllRecords.bind(this));
     },
     
     loadData: function() {
@@ -1567,8 +1551,13 @@ const AdminPanel = {
             }
         });
         
-        Promise.all(promises).then(() => {
+        Promise.all(promises).then((results) => {
             Stand120.hideLoading();
+            const failed = results.filter(result => !result.success);
+            if (failed.length) {
+                Stand120.showAlert('danger', failed[0].data?.message || 'Failed to save some products');
+                return;
+            }
             Stand120.showAlert('success', 'Products saved successfully');
             this.loadData();
         }).catch(() => {
@@ -1650,9 +1639,57 @@ const AdminPanel = {
     editStaff: function(e) {
         const $row = $(e.target).closest('tr');
         const staffId = $row.data('id');
+        const currentName = $row.find('td').eq(0).text().trim();
+        const currentPhone = $row.find('td').eq(1).text().trim();
+        const currentStatus = $row.find('td').eq(3).text().trim();
         
-        // Load staff details and show edit modal
-        // Similar to showAddStaffModal but with pre-filled data
+        const content = `
+            <form id="staffEditForm">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" class="form-control" name="full_name" value="${currentName}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone</label>
+                    <input type="text" class="form-control" name="phone" value="${currentPhone === '-' ? '' : currentPhone}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select class="form-control" name="status">
+                        <option value="active" ${currentStatus === 'active' ? 'selected' : ''}>Active</option>
+                        <option value="inactive" ${currentStatus === 'inactive' ? 'selected' : ''}>Inactive</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">New Password (optional)</label>
+                    <input type="password" class="form-control" name="password" placeholder="Leave blank to keep current">
+                </div>
+            </form>
+        `;
+        
+        Stand120.showModal({
+            title: 'Edit Staff',
+            content: content,
+            confirmText: 'Save Changes'
+        }).then(confirmed => {
+            if (confirmed) {
+                const formData = {};
+                $('#staffEditForm').serializeArray().forEach(item => {
+                    formData[item.name] = item.value;
+                });
+                
+                formData.staff_id = staffId;
+                
+                Stand120.ajax('update_staff', formData).then(response => {
+                    if (response.success) {
+                        Stand120.showAlert('success', 'Staff updated successfully');
+                        this.loadData();
+                    } else {
+                        Stand120.showAlert('danger', response.data?.message || 'Failed to update staff');
+                    }
+                });
+            }
+        });
     },
     
     deleteStaff: async function(e) {
@@ -1671,6 +1708,122 @@ const AdminPanel = {
                     $row.remove();
                     Stand120.showAlert('success', 'Staff deleted successfully');
                 }
+            });
+        }
+    },
+    
+    loadOpeningValues: function() {
+        const date = $('#openingDate').val() || new Date().toISOString().split('T')[0];
+        
+        const requests = [
+            Stand120.ajax('get_order_preparation', { date: date }),
+            Stand120.ajax('get_stock_inventory', { date: date }),
+            Stand120.ajax('get_chopping_inventory', { date: date })
+        ];
+        
+        Promise.all(requests).then(([prepResponse, stockResponse, chopResponse]) => {
+            if (prepResponse?.success) {
+                this.renderOpeningTable('#prepOpeningTable tbody', prepResponse.data.data, 'opening');
+            }
+            if (stockResponse?.success) {
+                this.renderOpeningTable('#stockOpeningTable tbody', stockResponse.data.data, 'opening');
+            }
+            if (chopResponse?.success) {
+                this.renderOpeningTable('#chopOpeningTable tbody', chopResponse.data.data, 'opening');
+            }
+        });
+    },
+    
+    renderOpeningTable: function(selector, items, openingField) {
+        const $tbody = $(selector);
+        $tbody.empty();
+        
+        if (!items || items.length === 0) {
+            $tbody.append('<tr><td colspan="2" style="text-align:center;color:var(--text-muted)">No data</td></tr>');
+            return;
+        }
+        
+        items.forEach(item => {
+            const openingValue = parseFloat(item[openingField]) || 0;
+            const row = `
+                <tr data-product-id="${item.product_id}">
+                    <td>${item.product_name}</td>
+                    <td>
+                        <input type="number" class="table-input opening-value" value="${openingValue}" min="0">
+                    </td>
+                </tr>
+            `;
+            $tbody.append(row);
+        });
+    },
+    
+    saveOpeningValues: function() {
+        const date = $('#openingDate').val() || new Date().toISOString().split('T')[0];
+        
+        const collectValues = (selector) => {
+            const values = [];
+            $(selector).find('tr[data-product-id]').each(function() {
+                const productId = $(this).data('product-id');
+                const value = parseFloat($(this).find('.opening-value').val()) || 0;
+                values.push({ product_id: productId, value: value });
+            });
+            return values;
+        };
+        
+        const requests = [
+            Stand120.ajax('update_all_opening_values', {
+                table: 'order_preparation',
+                date: date,
+                values: collectValues('#prepOpeningTable tbody')
+            }),
+            Stand120.ajax('update_all_opening_values', {
+                table: 'stock_inventory',
+                date: date,
+                values: collectValues('#stockOpeningTable tbody')
+            }),
+            Stand120.ajax('update_all_opening_values', {
+                table: 'chopping_inventory',
+                date: date,
+                values: collectValues('#chopOpeningTable tbody')
+            })
+        ];
+        
+        Stand120.showLoading('Saving opening values...');
+        Promise.all(requests).then((results) => {
+            Stand120.hideLoading();
+            const failed = results.find(result => !result.success);
+            if (failed) {
+                Stand120.showAlert('danger', failed.data?.message || 'Failed to save opening values');
+                return;
+            }
+            Stand120.showAlert('success', 'Opening values saved');
+        }).catch(() => {
+            Stand120.hideLoading();
+            Stand120.showAlert('danger', 'Failed to save opening values');
+        });
+    },
+    
+    clearAllRecords: async function() {
+        const confirmed = await Stand120.showModal({
+            title: 'Clear All Records',
+            content: 'This will permanently delete all orders, histories, and analytics records. This action cannot be undone.',
+            confirmText: 'Clear All'
+        });
+        
+        if (confirmed) {
+            Stand120.showLoading('Clearing records...');
+            Stand120.ajax('clear_all_records').then(response => {
+                Stand120.hideLoading();
+                if (response.success) {
+                    Stand120.showAlert('success', 'All records have been cleared');
+                    this.loadData();
+                    this.loadOpeningValues();
+                } else {
+                    Stand120.showAlert('danger', response.data?.message || 'Failed to clear records');
+                }
+            }).catch(() => {
+                Stand120.hideLoading();
+                Stand120.showAlert('danger', 'Failed to clear records');
             });
         }
     }

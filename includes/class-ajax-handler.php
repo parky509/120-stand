@@ -75,6 +75,9 @@ class Stand120_Ajax_Handler {
             case 'update_opening_values':
                 self::update_opening_values();
                 break;
+            case 'update_all_opening_values':
+                self::update_all_opening_values();
+                break;
             
             // Stock Inventory actions
             case 'save_stock_inventory':
@@ -147,6 +150,9 @@ class Stand120_Ajax_Handler {
             // Analytics
             case 'get_analytics':
                 self::get_analytics();
+                break;
+            case 'clear_all_records':
+                self::clear_all_records();
                 break;
             
             default:
@@ -412,6 +418,24 @@ class Stand120_Ajax_Handler {
                 wp_send_json_error(array('message' => 'Invalid table'));
                 return;
         }
+        
+        if ($result['success']) {
+            wp_send_json_success($result);
+        } else {
+            wp_send_json_error($result);
+        }
+    }
+
+    /**
+     * Update opening values in bulk (admin only)
+     */
+    private static function update_all_opening_values() {
+        if (!Stand120_Auth::is_admin()) {
+            wp_send_json_error(array('message' => 'Unauthorized - Admin access required'));
+            return;
+        }
+        
+        $result = Stand120_Admin_Panel::update_all_opening_values($_POST);
         
         if ($result['success']) {
             wp_send_json_success($result);
@@ -760,6 +784,29 @@ class Stand120_Ajax_Handler {
         $type = sanitize_text_field($_POST['type'] ?? 'overview');
         $date_from = sanitize_text_field($_POST['date_from'] ?? date('Y-m-01'));
         $date_to = sanitize_text_field($_POST['date_to'] ?? date('Y-m-d'));
+        $period = sanitize_text_field($_POST['period'] ?? '');
+        $reference_date = sanitize_text_field($_POST['date'] ?? $date_to);
+        
+        if ($period) {
+            $reference_timestamp = strtotime($reference_date);
+            if (!$reference_timestamp) {
+                $reference_timestamp = time();
+            }
+            switch ($period) {
+                case 'daily':
+                    $date_from = $reference_date;
+                    $date_to = $reference_date;
+                    break;
+                case 'weekly':
+                    $date_from = date('Y-m-d', strtotime('monday this week', $reference_timestamp));
+                    $date_to = date('Y-m-d', strtotime('sunday this week', $reference_timestamp));
+                    break;
+                case 'monthly':
+                    $date_from = date('Y-m-01', $reference_timestamp);
+                    $date_to = date('Y-m-t', $reference_timestamp);
+                    break;
+            }
+        }
         
         global $wpdb;
         
@@ -813,6 +860,123 @@ class Stand120_Ajax_Handler {
                     LIMIT 10",
                     $date_from, $date_to
                 ));
+                
+                $products_table = $wpdb->prefix . 'stand120_products';
+                $prep_table = $wpdb->prefix . 'stand120_order_preparation';
+                $stock_table = $wpdb->prefix . 'stand120_stock_inventory';
+                $chop_table = $wpdb->prefix . 'stand120_chopping_inventory';
+                $import_table = $wpdb->prefix . 'stand120_import_records';
+                $financial_table = $wpdb->prefix . 'stand120_financial_summary';
+                
+                $analytics['preparation'] = array(
+                    'summary' => $wpdb->get_row($wpdb->prepare(
+                        "SELECT 
+                            SUM(total_added) as total_added,
+                            SUM(total_sold) as total_sold,
+                            SUM(closing_value) as closing_value
+                        FROM $prep_table
+                        WHERE prep_date BETWEEN %s AND %s",
+                        $date_from, $date_to
+                    )),
+                    'records' => $wpdb->get_results($wpdb->prepare(
+                        "SELECT p.name as product_name,
+                            SUM(op.total_added) as total_added,
+                            SUM(op.total_sold) as total_sold,
+                            SUM(op.closing_value) as closing_value
+                        FROM $prep_table op
+                        JOIN $products_table p ON op.product_id = p.id
+                        WHERE op.prep_date BETWEEN %s AND %s
+                        GROUP BY op.product_id
+                        ORDER BY p.name ASC",
+                        $date_from, $date_to
+                    ))
+                );
+                
+                $analytics['stock'] = array(
+                    'summary' => $wpdb->get_row($wpdb->prepare(
+                        "SELECT 
+                            SUM(added_packs) as added_packs,
+                            SUM(used_packs) as used_packs,
+                            SUM(closing_packs) as closing_packs
+                        FROM $stock_table
+                        WHERE stock_date BETWEEN %s AND %s",
+                        $date_from, $date_to
+                    )),
+                    'records' => $wpdb->get_results($wpdb->prepare(
+                        "SELECT p.name as product_name, p.type as product_type,
+                            SUM(si.added_packs) as added_packs,
+                            SUM(si.used_packs) as used_packs,
+                            SUM(si.closing_packs) as closing_packs
+                        FROM $stock_table si
+                        JOIN $products_table p ON si.product_id = p.id
+                        WHERE si.stock_date BETWEEN %s AND %s
+                        GROUP BY si.product_id
+                        ORDER BY p.name ASC",
+                        $date_from, $date_to
+                    ))
+                );
+                
+                $analytics['chopping'] = array(
+                    'summary' => $wpdb->get_row($wpdb->prepare(
+                        "SELECT 
+                            SUM(import_whole) as import_whole,
+                            SUM(prepared_whole) as prepared_whole,
+                            SUM(packs_gotten) as packs_gotten
+                        FROM $chop_table
+                        WHERE chop_date BETWEEN %s AND %s",
+                        $date_from, $date_to
+                    )),
+                    'records' => $wpdb->get_results($wpdb->prepare(
+                        "SELECT p.name as product_name,
+                            SUM(ci.import_whole) as import_whole,
+                            SUM(ci.prepared_whole) as prepared_whole,
+                            SUM(ci.packs_gotten) as packs_gotten
+                        FROM $chop_table ci
+                        JOIN $products_table p ON ci.product_id = p.id
+                        WHERE ci.chop_date BETWEEN %s AND %s
+                        GROUP BY ci.product_id
+                        ORDER BY p.name ASC",
+                        $date_from, $date_to
+                    ))
+                );
+                
+                $analytics['imports'] = array(
+                    'summary' => $wpdb->get_row($wpdb->prepare(
+                        "SELECT SUM(quantity_imported) as quantity_imported
+                        FROM $import_table
+                        WHERE import_date BETWEEN %s AND %s",
+                        $date_from, $date_to
+                    )),
+                    'records' => $wpdb->get_results($wpdb->prepare(
+                        "SELECT p.name as product_name, p.type as product_type,
+                            SUM(ir.quantity_imported) as quantity_imported
+                        FROM $import_table ir
+                        JOIN $products_table p ON ir.product_id = p.id
+                        WHERE ir.import_date BETWEEN %s AND %s
+                        GROUP BY ir.product_id
+                        ORDER BY p.name ASC",
+                        $date_from, $date_to
+                    ))
+                );
+                
+                $analytics['financials'] = $wpdb->get_row($wpdb->prepare(
+                    "SELECT 
+                        SUM(total_sales) as total_sales,
+                        SUM(cash_sales) as cash_sales,
+                        SUM(transfer_sales) as transfer_sales,
+                        SUM(delivery_fees) as delivery_fees,
+                        SUM(extras_amount) as extras_amount,
+                        SUM(expenses_amount) as expenses_amount
+                    FROM $financial_table
+                    WHERE summary_date BETWEEN %s AND %s",
+                    $date_from, $date_to
+                ));
+                
+                $analytics['period'] = array(
+                    'date_from' => $date_from,
+                    'date_to' => $date_to,
+                    'period' => $period ?: 'custom'
+                );
                 break;
                 
             case 'inventory':
@@ -830,5 +994,23 @@ class Stand120_Ajax_Handler {
         }
         
         wp_send_json_success(array('analytics' => $analytics));
+    }
+
+    /**
+     * Clear all records and histories (admin only)
+     */
+    private static function clear_all_records() {
+        if (!Stand120_Auth::is_admin()) {
+            wp_send_json_error(array('message' => 'Unauthorized - Admin access required'));
+            return;
+        }
+        
+        $result = Stand120_Admin_Panel::clear_all_records();
+        
+        if ($result['success']) {
+            wp_send_json_success($result);
+        } else {
+            wp_send_json_error($result);
+        }
     }
 }
