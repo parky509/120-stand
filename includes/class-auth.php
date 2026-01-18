@@ -160,11 +160,15 @@ class Stand120_Auth {
         
         if (is_wp_error($user)) {
             if (is_user_logged_in()) {
-                return array(
-                    'success' => true,
-                    'message' => 'Login successful',
-                    'user' => self::get_current_user_data()
-                );
+                $current_user = wp_get_current_user();
+                $provided = strtolower($username);
+                if ($current_user && ($provided === strtolower($current_user->user_login) || $provided === strtolower($current_user->user_email))) {
+                    return array(
+                        'success' => true,
+                        'message' => 'Login successful',
+                        'user' => self::get_current_user_data()
+                    );
+                }
             }
             return array(
                 'success' => false,

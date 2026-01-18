@@ -669,13 +669,11 @@ const TakeOrder = {
         $('#subtotal').text('₦' + Stand120.formatNumber(subtotal));
         $('#grandTotal').text('₦' + Stand120.formatNumber(grandTotal));
         
-        // Log for debugging
     },
     
     handlePaymentMethodChange: function() {
         const method = $('input[name="payment_method"]:checked').val();
-        
-        
+    
         // Hide all payment sections first
         $('#cashSection').hide();
         $('#transferSection').hide();
