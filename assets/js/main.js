@@ -1809,12 +1809,7 @@ const AdminPanel = {
         });
         
         if (confirmed) {
-            const secondConfirm = await Stand120.showModal({
-                title: 'Confirm Delete',
-                content: 'Please confirm again to clear all records.',
-                confirmText: 'Yes, Clear'
-            });
-            
+            const secondConfirm = await this.confirmClearAllRecords();
             if (!secondConfirm) {
                 return;
             }
@@ -1834,6 +1829,47 @@ const AdminPanel = {
                 Stand120.showAlert('danger', 'Failed to clear records');
             });
         }
+    },
+    
+    confirmClearAllRecords: function() {
+        const modal = $(`
+            <div class="modal-overlay active">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Final Confirmation</h3>
+                        <button class="modal-close"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Type <strong>CLEAR</strong> to confirm you want to delete all records.</p>
+                        <input type="text" class="form-control" id="clearConfirmInput" placeholder="Type CLEAR">
+                        <p class="clear-confirm-error" style="color: var(--danger-color); margin-top: 8px; display: none;">Please type CLEAR to continue.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary modal-cancel">Cancel</button>
+                        <button class="btn btn-danger modal-confirm">Yes, Clear</button>
+                    </div>
+                </div>
+            </div>
+        `);
+        
+        $('body').append(modal);
+        
+        return new Promise((resolve) => {
+            modal.find('.modal-confirm').on('click', function() {
+                const value = modal.find('#clearConfirmInput').val().trim().toUpperCase();
+                if (value !== 'CLEAR') {
+                    modal.find('.clear-confirm-error').show();
+                    return;
+                }
+                Stand120.closeModal();
+                resolve(true);
+            });
+            
+            modal.find('.modal-cancel, .modal-close').on('click', function() {
+                Stand120.closeModal();
+                resolve(false);
+            });
+        });
     }
 };
 
