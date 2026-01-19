@@ -1042,12 +1042,8 @@ class Stand120_Ajax_Handler {
         
         $from_date = $date_from ? DateTime::createFromFormat('Y-m-d', $date_from) : null;
         $to_date = $date_to ? DateTime::createFromFormat('Y-m-d', $date_to) : null;
-        if (($date_from && $from_date === false) || ($date_to && $to_date === false)) {
-            wp_send_json_error(array('message' => 'Invalid date range'));
-            return;
-        }
-        $from_valid = !$date_from || ($from_date && $from_date->format('Y-m-d') === $date_from);
-        $to_valid = !$date_to || ($to_date && $to_date->format('Y-m-d') === $date_to);
+        $from_valid = !$date_from || ($from_date instanceof DateTime && $from_date->format('Y-m-d') === $date_from);
+        $to_valid = !$date_to || ($to_date instanceof DateTime && $to_date->format('Y-m-d') === $date_to);
         
         if (!$from_valid || !$to_valid) {
             wp_send_json_error(array('message' => 'Invalid date range'));
