@@ -225,17 +225,17 @@ include STAND120_PLUGIN_DIR . 'templates/partials/header.php';
         
         <div class="form-group">
             <label class="form-label">Day Reset Time</label>
-            <input type="time" class="form-control" value="23:59" readonly>
+            <input type="text" class="form-control" value="<?php echo date('g:i A', strtotime('23:59')); ?>" readonly>
             <small style="color: var(--text-muted);">Inventory values reset to new day after this time</small>
         </div>
         
         <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-glass);">
             <h4 style="color: var(--text-secondary); margin-bottom: 16px;">Data Management</h4>
             <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                <button class="btn btn-secondary">
+                <button id="exportData" class="btn btn-secondary">
                     <i class="fas fa-download"></i> Export Data
                 </button>
-                <button class="btn btn-secondary">
+                <button id="clearCache" class="btn btn-secondary">
                     <i class="fas fa-sync"></i> Clear Cache
                 </button>
                 <button id="clearAllRecords" class="btn btn-danger">

@@ -224,6 +224,33 @@ class Stand120_Admin_Panel {
                 ));
                 $data = $result['records'];
                 break;
+                
+            case 'preparation':
+                $result = Stand120_Order_Preparation::get_history(array(
+                    'date_from' => $date_from,
+                    'date_to' => $date_to,
+                    'per_page' => 10000
+                ));
+                $data = $result['records'];
+                break;
+                
+            case 'chopping':
+                $result = Stand120_Chopping_Inventory::get_history(array(
+                    'date_from' => $date_from,
+                    'date_to' => $date_to,
+                    'per_page' => 10000
+                ));
+                $data = $result['records'];
+                break;
+                
+            case 'imports':
+                $result = Stand120_Import_Record::get_history(array(
+                    'date_from' => $date_from,
+                    'date_to' => $date_to,
+                    'per_page' => 10000
+                ));
+                $data = $result['records'];
+                break;
         }
         
         return array('success' => true, 'data' => $data);

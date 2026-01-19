@@ -163,6 +163,9 @@ class Stand120_Ajax_Handler {
             case 'get_analytics':
                 self::get_analytics();
                 break;
+            case 'export_data':
+                self::export_data();
+                break;
             case 'clear_all_records':
                 self::clear_all_records();
                 break;
@@ -1016,6 +1019,28 @@ class Stand120_Ajax_Handler {
         }
         
         wp_send_json_success(array('analytics' => $analytics));
+    }
+
+    /**
+     * Export data (admin only)
+     */
+    private static function export_data() {
+        if (!Stand120_Auth::is_admin()) {
+            wp_send_json_error(array('message' => 'Unauthorized - Admin access required'));
+            return;
+        }
+        
+        $type = sanitize_text_field($_POST['type'] ?? '');
+        $date_from = sanitize_text_field($_POST['date_from'] ?? '');
+        $date_to = sanitize_text_field($_POST['date_to'] ?? '');
+        
+        $result = Stand120_Admin_Panel::export_data($type, $date_from, $date_to);
+        
+        if ($result['success']) {
+            wp_send_json_success($result);
+        } else {
+            wp_send_json_error($result);
+        }
     }
 
     /**

@@ -1439,6 +1439,8 @@ const AdminPanel = {
         $(document).on('click', '#saveOpeningValues', this.saveOpeningValues.bind(this));
         $(document).on('change', '#openingDate', this.loadOpeningValues.bind(this));
         $(document).on('click', '#clearAllRecords', this.clearAllRecords.bind(this));
+        $(document).on('click', '#clearCache', this.clearCache.bind(this));
+        $(document).on('click', '#exportData', this.exportData.bind(this));
     },
     
     loadData: function() {
@@ -1868,6 +1870,74 @@ const AdminPanel = {
             modal.find('.modal-cancel, .modal-close').on('click', function() {
                 Stand120.closeModal();
                 resolve(false);
+            });
+        });
+    },
+    
+    clearCache: function() {
+        localStorage.removeItem('stand120_cache');
+        localStorage.removeItem('stand120_offline_queue');
+        Stand120.showAlert('success', 'Cache cleared successfully');
+    },
+    
+    exportData: function() {
+        const content = `
+            <form id="exportForm">
+                <div class="form-group">
+                    <label class="form-label">Data Type</label>
+                    <select class="form-control" name="type">
+                        <option value="orders">Orders</option>
+                        <option value="financial">Financial Summary</option>
+                        <option value="stock">Stock Inventory</option>
+                        <option value="preparation">Order Preparation</option>
+                        <option value="chopping">Chopping Inventory</option>
+                        <option value="imports">Import Records</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">From Date</label>
+                    <input type="date" class="form-control" name="date_from" value="${new Date().toISOString().split('T')[0]}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">To Date</label>
+                    <input type="date" class="form-control" name="date_to" value="${new Date().toISOString().split('T')[0]}">
+                </div>
+            </form>
+        `;
+        
+        Stand120.showModal({
+            title: 'Export Data',
+            content: content,
+            confirmText: 'Download'
+        }).then(confirmed => {
+            if (!confirmed) {
+                return;
+            }
+            
+            const formData = {};
+            $('#exportForm').serializeArray().forEach(item => {
+                formData[item.name] = item.value;
+            });
+            
+            Stand120.showLoading('Preparing export...');
+            Stand120.ajax('export_data', formData).then(response => {
+                Stand120.hideLoading();
+                if (response.success) {
+                    const blob = new Blob([JSON.stringify(response.data.data || [], null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `stand120-${formData.type}-${formData.date_from}-to-${formData.date_to}.json`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                } else {
+                    Stand120.showAlert('danger', response.data?.message || 'Failed to export data');
+                }
+            }).catch(() => {
+                Stand120.hideLoading();
+                Stand120.showAlert('danger', 'Failed to export data');
             });
         });
     }

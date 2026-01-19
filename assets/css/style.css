@@ -1210,7 +1210,7 @@ select.form-control {
     padding: 12px 24px;
     background: transparent;
     border: none;
-    color: var(--text-muted);
+    color: var(--text-white);
     font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
@@ -1231,7 +1231,7 @@ select.form-control {
 }
 
 .tab-btn:hover {
-    color: var(--text-secondary);
+    color: var(--primary-light);
 }
 
 .tab-btn.active {
