@@ -1040,7 +1040,12 @@ class Stand120_Ajax_Handler {
             return;
         }
         
-        if (($date_from && !strtotime($date_from)) || ($date_to && !strtotime($date_to))) {
+        $from_date = $date_from ? DateTime::createFromFormat('Y-m-d', $date_from) : null;
+        $to_date = $date_to ? DateTime::createFromFormat('Y-m-d', $date_to) : null;
+        $from_valid = $from_date && $from_date->format('Y-m-d') === $date_from;
+        $to_valid = $to_date && $to_date->format('Y-m-d') === $date_to;
+        
+        if (($date_from && !$from_valid) || ($date_to && !$to_valid)) {
             wp_send_json_error(array('message' => 'Invalid date range'));
             return;
         }
