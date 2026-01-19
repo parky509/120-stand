@@ -225,7 +225,7 @@ include STAND120_PLUGIN_DIR . 'templates/partials/header.php';
         
         <div class="form-group">
             <label class="form-label">Day Reset Time</label>
-            <input type="text" class="form-control" value="<?php echo date('g:i A', strtotime('23:59')); ?>" readonly>
+            <input type="text" class="form-control" value="11:59 PM" readonly>
             <small style="color: var(--text-muted);">Inventory values reset to new day after this time</small>
         </div>
         

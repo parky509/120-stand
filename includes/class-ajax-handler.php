@@ -1034,6 +1034,17 @@ class Stand120_Ajax_Handler {
         $date_from = sanitize_text_field($_POST['date_from'] ?? '');
         $date_to = sanitize_text_field($_POST['date_to'] ?? '');
         
+        $allowed_types = array('orders', 'financial', 'stock', 'preparation', 'chopping', 'imports');
+        if (!in_array($type, $allowed_types, true)) {
+            wp_send_json_error(array('message' => 'Invalid export type'));
+            return;
+        }
+        
+        if (($date_from && !strtotime($date_from)) || ($date_to && !strtotime($date_to))) {
+            wp_send_json_error(array('message' => 'Invalid date range'));
+            return;
+        }
+        
         $result = Stand120_Admin_Panel::export_data($type, $date_from, $date_to);
         
         if ($result['success']) {

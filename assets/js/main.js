@@ -1923,7 +1923,8 @@ const AdminPanel = {
             Stand120.ajax('export_data', formData).then(response => {
                 Stand120.hideLoading();
                 if (response.success) {
-                    const blob = new Blob([JSON.stringify(response.data.data || [], null, 2)], { type: 'application/json' });
+                    const exportData = response.data?.data || [];
+                    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
                     link.href = url;
