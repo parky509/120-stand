@@ -1881,6 +1881,11 @@ const AdminPanel = {
     },
     
     exportData: function() {
+        const today = new Date();
+        const startDate = new Date(today);
+        startDate.setDate(today.getDate() - 30);
+        const todayValue = today.toISOString().split('T')[0];
+        const startValue = startDate.toISOString().split('T')[0];
         const content = `
             <form id="exportForm">
                 <div class="form-group">
@@ -1896,11 +1901,11 @@ const AdminPanel = {
                 </div>
                 <div class="form-group">
                     <label class="form-label">From Date</label>
-                    <input type="date" class="form-control" name="date_from" value="${new Date().toISOString().split('T')[0]}">
+                    <input type="date" class="form-control" name="date_from" value="${startValue}">
                 </div>
                 <div class="form-group">
                     <label class="form-label">To Date</label>
-                    <input type="date" class="form-control" name="date_to" value="${new Date().toISOString().split('T')[0]}">
+                    <input type="date" class="form-control" name="date_to" value="${todayValue}">
                 </div>
             </form>
         `;
@@ -1927,10 +1932,18 @@ const AdminPanel = {
                     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
-                    const dateFrom = formData.date_from || 'all';
-                    const dateTo = formData.date_to || 'all';
+                    const dateFrom = formData.date_from || '';
+                    const dateTo = formData.date_to || '';
+                    let rangeLabel = 'complete';
+                    if (dateFrom && dateTo) {
+                        rangeLabel = `${dateFrom}-to-${dateTo}`;
+                    } else if (dateFrom) {
+                        rangeLabel = `from-${dateFrom}`;
+                    } else if (dateTo) {
+                        rangeLabel = `to-${dateTo}`;
+                    }
                     link.href = url;
-                    link.download = `stand120-${formData.type}-${dateFrom}-to-${dateTo}.json`;
+                    link.download = `stand120-${formData.type}-${rangeLabel}.json`;
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
