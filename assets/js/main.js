@@ -1913,15 +1913,17 @@ const Login = {
                     $('#loginBtn').prop('disabled', false).html('<i class="fas fa-sign-in-alt"></i> Login');
                 };
                 
-                Stand120.ajax('check_login_status')
-                    .then(status => {
-                        if (status.success && status.data?.is_logged_in) {
-                            window.location.href = Stand120.config.home_url || '/120-stand/';
-                            return;
-                        }
-                        handleLoginFailure();
-                    })
-                    .catch(handleLoginFailure);
+                setTimeout(() => {
+                    Stand120.ajax('check_login_status')
+                        .then(status => {
+                            if (status.success && status.data?.is_logged_in) {
+                                window.location.href = Stand120.config.home_url || '/120-stand/';
+                                return;
+                            }
+                            handleLoginFailure();
+                        })
+                        .catch(handleLoginFailure);
+                }, 200);
             }
         }).catch(() => {
             Stand120.showAlert('danger', 'An error occurred. Please try again.');
