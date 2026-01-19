@@ -1877,6 +1877,7 @@ const AdminPanel = {
  * Login Module
  */
 const Login = {
+    fallbackDelay: 200,
     init: function() {
         this.bindEvents();
     },
@@ -1923,7 +1924,7 @@ const Login = {
                             handleLoginFailure();
                         })
                         .catch(handleLoginFailure);
-                }, 200);
+                }, this.fallbackDelay);
             }
         }).catch(() => {
             Stand120.showAlert('danger', 'An error occurred. Please try again.');

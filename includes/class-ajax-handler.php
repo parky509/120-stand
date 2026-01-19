@@ -11,6 +11,13 @@ if (!defined('ABSPATH')) {
 class Stand120_Ajax_Handler {
     
     /**
+     * Actions that do not require nonce validation.
+     */
+    private static function is_nonce_exempt_action($action) {
+        return in_array($action, array('login', 'check_login_status'), true);
+    }
+
+    /**
      * Handle AJAX requests
      */
     public static function handle() {
@@ -18,7 +25,7 @@ class Stand120_Ajax_Handler {
         
         // Login action doesn't require nonce verification (user isn't logged in yet)
         // But still verify the nonce is properly formatted
-        if (!in_array($action, array('login', 'check_login_status'), true)) {
+        if (!self::is_nonce_exempt_action($action)) {
             if (!wp_verify_nonce($_POST['nonce'] ?? '', 'stand120_nonce')) {
                 wp_send_json_error(array('message' => 'Security check failed. Please refresh the page and try again.'));
                 return;
