@@ -1927,8 +1927,10 @@ const AdminPanel = {
                     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
+                    const dateFrom = formData.date_from || 'all';
+                    const dateTo = formData.date_to || 'all';
                     link.href = url;
-                    link.download = `stand120-${formData.type}-${formData.date_from}-to-${formData.date_to}.json`;
+                    link.download = `stand120-${formData.type}-${dateFrom}-to-${dateTo}.json`;
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
