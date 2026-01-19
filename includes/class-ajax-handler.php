@@ -1040,6 +1040,8 @@ class Stand120_Ajax_Handler {
             return;
         }
         
+        $date_from = $date_from !== '' ? $date_from : null;
+        $date_to = $date_to !== '' ? $date_to : null;
         $from_date = $date_from ? DateTime::createFromFormat('Y-m-d', $date_from) : null;
         $to_date = $date_to ? DateTime::createFromFormat('Y-m-d', $date_to) : null;
         $from_valid = $from_date && $from_date->format('Y-m-d') === $date_from;
