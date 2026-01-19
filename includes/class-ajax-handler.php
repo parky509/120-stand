@@ -435,8 +435,7 @@ class Stand120_Ajax_Handler {
      */
     private static function check_login_status() {
         wp_send_json_success(array(
-            'is_logged_in' => Stand120_Auth::is_logged_in(),
-            'user' => Stand120_Auth::get_current_user_data()
+            'is_logged_in' => Stand120_Auth::is_logged_in()
         ));
     }
 
