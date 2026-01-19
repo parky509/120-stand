@@ -1909,6 +1909,7 @@ const Login = {
                     window.location.href = Stand120.config.home_url || '/120-stand/';
                 }, 300);
             } else {
+                const fallbackDelay = this.fallbackDelay;
                 const handleLoginFailure = () => {
                     Stand120.showAlert('danger', response.data?.message || 'Login failed');
                     $('#loginBtn').prop('disabled', false).html('<i class="fas fa-sign-in-alt"></i> Login');
@@ -1924,7 +1925,7 @@ const Login = {
                             handleLoginFailure();
                         })
                         .catch(handleLoginFailure);
-                }, this.fallbackDelay);
+                }, fallbackDelay);
             }
         }).catch(() => {
             Stand120.showAlert('danger', 'An error occurred. Please try again.');
