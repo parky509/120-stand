@@ -1908,8 +1908,17 @@ const Login = {
                     window.location.href = Stand120.config.home_url || '/120-stand/';
                 }, 300);
             } else {
-                Stand120.showAlert('danger', response.data?.message || 'Login failed');
-                $('#loginBtn').prop('disabled', false).html('<i class="fas fa-sign-in-alt"></i> Login');
+                Stand120.ajax('check_login_status').then(status => {
+                    if (status.success && status.data?.is_logged_in) {
+                        window.location.href = Stand120.config.home_url || '/120-stand/';
+                        return;
+                    }
+                    Stand120.showAlert('danger', response.data?.message || 'Login failed');
+                    $('#loginBtn').prop('disabled', false).html('<i class="fas fa-sign-in-alt"></i> Login');
+                }).catch(() => {
+                    Stand120.showAlert('danger', response.data?.message || 'Login failed');
+                    $('#loginBtn').prop('disabled', false).html('<i class="fas fa-sign-in-alt"></i> Login');
+                });
             }
         }).catch(() => {
             Stand120.showAlert('danger', 'An error occurred. Please try again.');

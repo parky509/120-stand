@@ -30,6 +30,9 @@ class Stand120_Ajax_Handler {
             case 'login':
                 self::handle_login();
                 break;
+            case 'check_login_status':
+                self::check_login_status();
+                break;
             case 'logout':
                 self::handle_logout();
                 break;
@@ -425,6 +428,16 @@ class Stand120_Ajax_Handler {
         } else {
             wp_send_json_error($result);
         }
+    }
+
+    /**
+     * Check login status
+     */
+    private static function check_login_status() {
+        wp_send_json_success(array(
+            'is_logged_in' => Stand120_Auth::is_logged_in(),
+            'user' => Stand120_Auth::get_current_user_data()
+        ));
     }
 
     /**
