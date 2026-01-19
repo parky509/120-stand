@@ -18,7 +18,7 @@ class Stand120_Ajax_Handler {
         
         // Login action doesn't require nonce verification (user isn't logged in yet)
         // But still verify the nonce is properly formatted
-        if ($action !== 'login') {
+        if (!in_array($action, array('login', 'check_login_status'), true)) {
             if (!wp_verify_nonce($_POST['nonce'] ?? '', 'stand120_nonce')) {
                 wp_send_json_error(array('message' => 'Security check failed. Please refresh the page and try again.'));
                 return;
@@ -434,11 +434,6 @@ class Stand120_Ajax_Handler {
      * Check login status
      */
     private static function check_login_status() {
-        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'stand120_nonce')) {
-            wp_send_json_error(array('message' => 'Security check failed.'));
-            return;
-        }
-        
         wp_send_json_success(array(
             'is_logged_in' => Stand120_Auth::is_logged_in()
         ));

@@ -1917,14 +1917,9 @@ const Login = {
                     .then(status => {
                         if (status.success && status.data?.is_logged_in) {
                             window.location.href = Stand120.config.home_url || '/120-stand/';
-                            return true;
+                            return;
                         }
-                        return false;
-                    })
-                    .then(isLoggedIn => {
-                        if (!isLoggedIn) {
-                            handleLoginFailure();
-                        }
+                        handleLoginFailure();
                     })
                     .catch(handleLoginFailure);
             }
